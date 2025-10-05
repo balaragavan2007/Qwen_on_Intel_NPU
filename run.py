@@ -3,31 +3,29 @@ from openvino_genai import LLMPipeline
 
 class ChatModel:
     """
-    A class to encapsulate the OpenVINO LLM pipeline and manage chat history.
+    A simplified, non-streaming chatbot focused on getting a complete response.
     """
     def __init__(self, model_path: str, device: str = "AUTO"):
         print(f"Loading model on device: {device}...")
-        
-        self.pipe = LLMPipeline(
-            models_path=model_path, 
-            device=device,
-            parser_name='qwen3',
-            collect_perf_metrics=True
-        )
+
+        pipeline_args = {
+            'models_path': model_path,
+            'device': device,
+            'collect_perf_metrics': True
+        }
+        print("Performance metrics collection is enabled.")
+
+        self.pipe = LLMPipeline(**pipeline_args)
         
         self.config = openvino_genai.GenerationConfig()
         self.config.max_new_tokens = 1024
         
-        # --- THE FIX ---
-        # The history must be a simple list of strings.
-        self.history = []
+        self.history = [] # We bring back history for a better conversation
         
         print("Model loaded and ready.")
         
     def _format_performance_metrics(self, perf_metrics_obj) -> dict:
-        """
-        Helper method to format the performance metrics object.
-        """
+        """Helper method to format the performance metrics object."""
         if not perf_metrics_obj:
             return None
             
@@ -40,12 +38,11 @@ class ChatModel:
 
     def generate(self, prompt: str) -> dict:
         """
-        Generates a response using a simple list of strings for history.
+        Generates a full response in a single, blocking call.
         """
-        # --- THE FIX ---
-        # Append the user's prompt directly to the history list.
         self.history.append(prompt)
         
+        # We make a simple, non-streaming call to generate.
         result_obj = self.pipe.generate(self.history, self.config)
         
         response_text = result_obj.texts[0]
@@ -54,8 +51,6 @@ class ChatModel:
         if '</think>' in response_text:
             response_text = response_text.split('</think>')[-1].strip()
         
-        # --- THE FIX ---
-        # Append the bot's clean response directly to the history list.
         self.history.append(response_text)
 
         return {
@@ -76,11 +71,12 @@ if __name__ == "__main__":
         user_input = input("\nYou: ")
         if user_input.lower() in ["exit", "quit"]:
             break
-            
+        
         response_data = model.generate(user_input)
         bot_text = response_data["text"]
         perf_metrics = response_data["performance"]
-        
+
+        # The bot will "think" for a moment, then print the full answer at once.
         print(f"Bot: {bot_text}")
         
         if perf_metrics:
