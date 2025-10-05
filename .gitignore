@@ -1,0 +1,5 @@
+# Ignore the large model files
+Qwen3-8B-NPU-Model/
+
+# Ignore Python's virtual environment folder
+llm/
