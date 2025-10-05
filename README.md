@@ -57,7 +57,7 @@ Running the Qwen 3-8B model on my [ASUS Vivobook S16 OLED with Intel Core Ultra 
 |--------|------------------|
 | CPU    | [21.49] tok/s |
 | GPU    | [27.12] tok/s |
-| NPU    | [7.56] tok/s |
+| NPU    | [8.77] tok/s |
 
 
 ---
